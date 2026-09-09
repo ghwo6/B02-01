@@ -3,12 +3,17 @@ import sys
 PROGRAM_END_POINT = "./main.py"
 USAGE_LIST = ["add","list","update","delete","search","summary","budget","category","import","export"]
 
-def print_defalut_use():
-    ...
+def defalut_use_print():
+    print(f"python {PROGRAM_END_POINT} [usage]")
+    print("[usage]는 다음과 같습니다.")
+    print_usage()
+    return
 
 def print_usage():
-    print("\n",*USAGE_LIST[0:len(USAGE_LIST)//2])
-    print(*USAGE_LIST[len(USAGE_LIST)//2:],"\n")
+    print()
+    print(*USAGE_LIST[0:len(USAGE_LIST)//2])
+    print(*USAGE_LIST[len(USAGE_LIST)//2:])
+    print()
 
     return
 
@@ -20,9 +25,7 @@ def parser():
     if len(sys.argv) >1 :
         if sys.argv[1] == "--h":
 
-            print("\n",f"python {PROGRAM_END_POINT} usage")
-            print("\n","usage는 다음과 같습니다.")
-            print_usage()
+            defalut_use_print()
 
             # print("add , list , update , delete , search")
             # print("summary , budget , category , import , export")
@@ -37,11 +40,13 @@ def parser():
 
 
         # 실습을 위해 출력해봄
-        for v in sys.argv[1:]:
-            print(v)
+        # for v in sys.argv[1:]:
+        #     print(v)
     else:
         print("arg가 입력되지 않았습니다.")
         print("사용법이 필요하시면 --help를 입력해주세요.")
 
 if __name__ == "__main__":
+    print()
     parser()
+    print()
