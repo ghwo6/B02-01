@@ -40,6 +40,16 @@ def load_jsonl(filename):
     except json.JSONDecodeError:
         print(filename," 파일을 JSON으로 해독(Decode)할 수 없습니다.")
 
+
+# user_input 함수에서 카테고리 입력할때 사용자에게 안내할때 사용함
+def get_categories_name()->list:
+
+    l = load_jsonl(CATEGORIES_FILE)
+    li = []
+    for line in l:
+        li.append(line.get("name").strip())
+    return li
+
 # def load_json(file_name:str):
 #     try:
 #         with open(file_name,"rt",encoding="UTF-8") as f:
@@ -53,8 +63,15 @@ if __name__ =="__main__":
     # default_file_check()
 
     # load_jsonl 함수 테스트
-    l = load_jsonl(CATEGORIES_FILE)
-    for line in l:
-        print(line)
-        print(f"type(line) = {type(line)}")
+    # l = load_jsonl(CATEGORIES_FILE)
+    # for line in l:
+    #     print(line)
+    #     print(f"type(line) = {type(line)}")
+    
+    # 카테고리의 name만 뽑아봄
+    # l = load_jsonl(CATEGORIES_FILE)
+    # li = []
+    # for line in l:
+    #     li.append(line.get("name").strip())
+    # print(li,sep = "")
     ...

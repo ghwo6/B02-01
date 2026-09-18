@@ -1,4 +1,5 @@
 import datetime
+from data_handle import get_categories_name
 
 def date_input():
     # 잘못 되면 다시 실행 하기 위해 while문
@@ -49,7 +50,18 @@ def money_type_verify()->str:
         else:
             print("다시 입력해주세요.")
 
+# input_valid_categories
+def is_exist_in_categories(user_selected_type)->bool:
     
+    CATEGORY_LIST = get_categories_name()
+    while True:
+        category_select = str_input("카테고리를 입력해주세요. >").strip()
+        if category_select in CATEGORY_LIST:
+            if 
+            return category_select
+        else:
+
+    ...
 
 def validate_date(date_text):
     try:
@@ -57,6 +69,8 @@ def validate_date(date_text):
         return date
     except ValueError:
         print("날짜를 잘못 입력하셨습니다.")
+
+
 if __name__ == "__main__":
 
     # date_input() 테스트
@@ -73,4 +87,3 @@ if __name__ == "__main__":
     # money_type_verify() 검증
     # money_type = money_type_verify()
     # print(money_type)
-    
