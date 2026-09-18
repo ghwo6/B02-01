@@ -24,7 +24,21 @@ def default_file_check():
 def make_like_touch(filepath:str):
     with open(filepath,'wt',encoding="utf-8"):
         return
-    
+
+def load_jsonl(filename):
+    try:
+        with open(filename,"rt",encoding="utf-8") as f:
+            for raw_line in f:
+                # 에러 낫었음
+                line_jsonl = json.dumps(raw_line)
+                line_jsonl = json.loads(raw_line)
+                yield line_jsonl
+    except UnicodeDecodeError:
+        print(filename," 파일을 utf-8로 읽을 수 없습니다.")
+    except FileNotFoundError:
+        print(filename," 파일이 없습니다.")
+    except json.JSONDecodeError:
+        print(filename," 파일을 JSON으로 해독(Decode)할 수 없습니다.")
 
 # def load_json(file_name:str):
 #     try:
@@ -35,4 +49,12 @@ def make_like_touch(filepath:str):
 #         ...
 
 if __name__ =="__main__":
-    default_file_check()
+    # 초기 데이터 만들기 함수 쓸모없었음
+    # default_file_check()
+
+    # load_jsonl 함수 테스트
+    l = load_jsonl(CATEGORIES_FILE)
+    for line in l:
+        print(line)
+        print(f"type(line) = {type(line)}")
+    ...

@@ -1,5 +1,6 @@
 import sys
 import argparse
+from user_input import date_input,str_input,money_type_verify
 
 PROGRAM_END_POINT = "./main.py"
 USAGE_LIST = ["add","list","update","delete","search","summary","budget","category","import","export"]
@@ -19,6 +20,36 @@ def print_usage():
     return
 
 def f_add():
+    """
+    # 날짜 입력 받음
+    # 타입 입력 받음 (income / expense)
+    # 카테고리1 - categories.jsonl에 name이 있는지 확인 타입에 맞는지 확인함
+    # categories.jsonl에 없다면 추가 해달라고 요청
+    # categories에 타입이 맞지 않는다면 변환하자 income -> expense 또는 반대로
+    # 카테고리2 - 카테고리 입력받음
+    # 금액 입력 (양수 , int(금액이니까))
+    # 메모 입력받음 (선택)
+    # 태그 입력받음 (선택)
+    """
+
+
+    # 날짜 입력 받음
+    date = date_input()
+    # 타입 입력 받음 (income / expense)
+    print("income = 수익", "expense = 지출", "default = expense")
+    money_type = money_type_verify()
+    # 카테고리1 - categories.jsonl에 name이 있는지 확인 타입에 맞는지 확인함
+    
+    # categories.jsonl에 없다면 추가 해달라고 요청
+    # categories에 타입이 맞지 않는다면 변환하자 income -> expense 또는 반대로
+    # 카테고리2 - 카테고리 입력받음
+    # 금액 입력 (양수 , int(금액이니까))
+    # 메모 입력받음 (선택)
+    # 태그 입력받음 (선택)
+
+    ...
+
+def f_list():
     ...
 
 # 일단은 매개변수가 있으면 출력하는 기능으로 구현함
@@ -27,7 +58,8 @@ def parser():
     parser = argparse.ArgumentParser(prog="budget_app")
 
     # 사용자가 입력한 명령어 이름을 'command'라는 변수에 담도록 설정 with GEMINI
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    
+    subparsers = parser.add_subparsers(dest="command", required=True,choices=USAGE_LIST)
 
     # 각 명령어를 독립된 서브 커맨드로 입력함 with GEMINI
 
