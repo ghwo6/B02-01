@@ -30,7 +30,7 @@ def load_jsonl(filename):
         with open(filename,"rt",encoding="utf-8") as f:
             for raw_line in f:
                 # 에러 낫었음
-                line_jsonl = json.dumps(raw_line)
+                # line_jsonl = json.dumps(raw_line)
                 line_jsonl = json.loads(raw_line)
                 yield line_jsonl
     except UnicodeDecodeError:
@@ -40,6 +40,19 @@ def load_jsonl(filename):
     except json.JSONDecodeError:
         print(filename," 파일을 JSON으로 해독(Decode)할 수 없습니다.")
 
+def generator_categories_jsonl():
+    return load_jsonl(CATEGORIES_FILE)
+def lgenerator_budgets_jsonl():
+    return load_jsonl(BUDGETS_FILE)
+def generator_transactions_jsonl():
+    return load_jsonl(TRANSACTIONS_FILE)
+
+# 리스트로 반환
+def return_categories_jsonl()->list[dict]:
+    categories_list = []
+    for li in load_jsonl(CATEGORIES_FILE):
+        categories_list.append(li)
+    return categories_list
 
 # user_input 함수에서 카테고리 입력할때 사용자에게 안내할때 사용함
 def get_categories_name()->list:
@@ -50,6 +63,19 @@ def get_categories_name()->list:
         li.append(line.get("name").strip())
     return li
 
+# 카테고리를 읽어서 있는 카테고리인지 확인하는 함수를 user_input 에서 짜는 과정에서
+# 카테고리 파일을 여러번 호출하게 될거 같아 categories.jsonl의 내용물을 변수로 받은 함수를 만듦
+def get_categories()->list[dict]:
+
+    l = load_jsonl(CATEGORIES_FILE)
+    li = []
+    for line in l:
+        li.append(line)
+        # li.append(line.get("name").strip())
+    return li
+
+
+# 제너레이터로 가져오기위해 폐기함
 # def load_json(file_name:str):
 #     try:
 #         with open(file_name,"rt",encoding="UTF-8") as f:
