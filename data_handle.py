@@ -80,36 +80,6 @@ def get_categories()->list[dict]:
     return li
 
 
-# 제너레이터로 가져오기위해 폐기함
-# def load_json(file_name:str):
-#     try:
-#         with open(file_name,"rt",encoding="UTF-8") as f:
-#             json.loads(f)
-#     except FileNotFoundError as e:
-#         # 초기 파일 만들기
-#         ...
-
-# 새로운 id를 주기 위해 만든 함수
-def new_trasaction_number()->str:
-    transaction_number_list = []
-    for i , di in enumerate(generator_transactions_jsonl()):
-        try:
-            raw_id = int(di["id"].replace("TX-",""))
-        except Exception as e:
-            print("new_trasaction_number 확인 요망", e)
-
-        transaction_number_list.append(raw_id)
-    transaction_number_list.sort()
-    if len(transaction_number_list) == 0:
-        new_number = 1
-    else:
-        new_number = int(transaction_number_list[-1]) +1
-    print(new_number)
-    return "TX-" +f"{new_number:06d}"
-
-    # TX-1이 출력됨
-    # return "TX-" +str(new_number)
-
 
 
 if __name__ =="__main__":
@@ -128,4 +98,4 @@ if __name__ =="__main__":
     # for line in l:
     #     li.append(line.get("name").strip())
     # print(li,sep = "")
-    print(new_trasaction_number())
+    ...

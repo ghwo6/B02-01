@@ -1,7 +1,7 @@
 import sys
 import argparse
 from user_input import date_input,str_input,money_type_verify,category_input,amount_input
-from data_handle import new_trasaction_number
+from repository import new_trasaction_number
 from models import Transaction
 from repository import TransactionRepository
 
