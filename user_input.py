@@ -23,10 +23,9 @@ def date_input():
         except ValueError:
             print("날짜를 잘못 입력하셨습니다.")
             continue
-        
-        return f"{y} {m} {d}"
+        return f"{int(y):04d}-{int(m):02d}-{int(d):02d}"
 
-def str_input(prompt:str,required:bool=False):
+def str_input(prompt:str,required:bool=True,is_tags:bool=False):
     while True:
         data_input = input(prompt).strip()
         if required:
@@ -38,8 +37,14 @@ def str_input(prompt:str,required:bool=False):
                 return data_input
         else:
             # 입력안해도 되는 입력값
-            return data_input
-        
+            if is_tags:
+                #태그면
+                return [tag for tag in data_input.split(" ") if tag]
+            
+            else:
+                #태그가 아니면
+                return data_input
+
 money_type_list = ["income","expense"]
 
 def money_type_verify()->str:
@@ -81,10 +86,13 @@ def amount_input(prompt:str)->int:
         raw_input = input(prompt).strip()
         try:
             raw_input = int(raw_input.replace(",",""))
+            if raw_input > 0:
+                return raw_input
+            else:
+                print(" (양수) '+' 값으로 입력부탁드립니다.")
         except ValueError:
             print("잘못된 값입니다.")
-        except 
-        ...
+
 
 def validate_date(date_text):
     try:

@@ -1,4 +1,4 @@
-from dataclasses import dataclass,asdict
+from dataclasses import dataclass,asdict,field
 from typing import Optional
 import json
 
@@ -45,7 +45,10 @@ class Transaction:
     amount : int
     category : str          ## 카테고리 이름(참조 키만 보관)
     memo : Optional[str] = None
-    tags : Optional[list[str]] = None
+    tags : list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return asdict(self)
 
 # tags는 여러개가 들어갈수 있으니 str보다는 list[str]이 더 낫다고 함 Gemini
 
