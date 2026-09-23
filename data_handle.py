@@ -1,10 +1,11 @@
 import os,json
 from models import init_categories_file
+
 DIR_NAME = os.path.dirname(__file__)
 DATA_DIR = os.path.join(DIR_NAME,"data")
-TRANSACTIONS_FILE = os.path.join(DIR_NAME,DATA_DIR,"transactions.jsonl")
-CATEGORIES_FILE = os.path.join(DIR_NAME,DATA_DIR,"categories.jsonl")
-BUDGETS_FILE = os.path.join(DIR_NAME,DATA_DIR,"budgets.jsonl")
+TRANSACTIONS_FILE = os.path.join(DATA_DIR,"transactions.jsonl")
+CATEGORIES_FILE = os.path.join(DATA_DIR,"categories.jsonl")
+BUDGETS_FILE = os.path.join(DATA_DIR,"budgets.jsonl")
 
 def default_file_check():
     if os.path.exists(TRANSACTIONS_FILE):
@@ -53,6 +54,7 @@ def trasaction_append(tx_dict):
         f.write(line + "\n")
 
 # 리스트로 반환
+# 메인에서 쓰고 있어서 이대로 주자
 def return_categories_jsonl()->list[dict]:
     categories_list = []
     for li in load_jsonl(CATEGORIES_FILE):

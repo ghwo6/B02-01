@@ -1,5 +1,5 @@
 import datetime
-from repository import return_categories_jsonl
+from data_handle import return_categories_jsonl
 
 def date_input():
     # 잘못 되면 다시 실행 하기 위해 while문

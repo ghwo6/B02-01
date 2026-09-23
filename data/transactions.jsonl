@@ -1,2 +1,6 @@
-{"id": "TX-000001", "type": "expense", "date": "2020-02-02", "amount": 12121, "category": "식비", "memo": "2121", "tags": ["122", "1212"]}
 {"id": "TX-000002", "type": "expense", "date": "2222-02-02", "amount": 12121, "category": "식비", "memo": "3232 32323", "tags": ["3", "23"]}
+{"id": "TX-000003", "type": "expense", "date": "2011-01-01", "amount": 11111, "category": "식비", "memo": "#닭갈비", "tags": ["meal", "lunch"]}
+{"id": "TX-000004", "type": "expense", "date": "2024-01-20", "amount": 2500, "category": "교통", "memo": "지하철 이동", "tags": ["transport"]}
+{"id": "TX-000005", "type": "income", "date": "2024-01-25", "amount": 3500000, "category": "급여", "memo": "1월 정기 급여 입금", "tags": ["salary"]}
+{"id": "TX-000006", "type": "expense", "date": "2024-01-28", "amount": 9000, "category": "식비", "memo": "구내식당 점심", "tags": ["meal"]}
+{"id": "TX-000007", "type": "expense", "date": "2024-02-02", "amount": 45000, "category": "쇼핑", "memo": "개발 서적 구매", "tags": ["book"]}
