@@ -1,8 +1,9 @@
 import sys
 import argparse
-from user_input import date_input,str_input,money_type_verify,category_input,amount_input
-from models import Transaction,Category
-from repository import TransactionRepository, CategoryRepository
+
+from user_input import date_input,str_input,money_type_verify,category_input,amount_input,input_ym
+from models import Transaction,Category,Budget
+from repository import TransactionRepository, CategoryRepository,BudgetRepository
 from decorators import handle_errors
 
 PROGRAM_END_POINT = "./main.py"
@@ -284,6 +285,57 @@ def f_category_remove(args):
     else:
         print(f"[오류] 카테고리 삭제에 실패했습니다.")
 
+@handle_errors(hint="월 형식(YYYY-MM) 및 금액(양수)을 올바르게 입력해 주세요.")
+def f_budget_set(args):
+    repo = BudgetRepository()
+    
+    # 월 파서에 없으면 대화형으로 입력받자 (편의성 높여줌)
+    ym = getattr(args,"month",None)
+
+    if not ym:
+        ym = input_ym("설정할 연월 (YYYY-MM) > ")
+    
+    amount = getattr(args,"amount",None)
+    if amount is None:
+        amount = amount_input("예산 금액을 입력해주세요 (원) > ")
+
+    else:
+        if amount <= 0:
+            print("[오류] 예산 금액은 0보다 큰 양수여야 합니다.")
+            return
+    
+    # 이미 등록된 연-월인지 확인 (사용자 출력용)
+    is_update = repo.get_budget(ym) is not None
+    
+    # 예산 저장 (신규 등록 + Update)
+    budget_obj = Budget(ym=ym,budget=amount)
+    repo.save(budget_obj)
+
+    if is_update:
+        print(f"\n[수정 완료] {ym} 예산이 {amount:,d}원으로 갱신되었습니다.")
+    else:
+        print(f"\n[추가 완료] {ym} 예산이 {amount:,d}원으로 설정되었습니다.")
+
+
+@handle_errors(hint="예산 저장소 파일 (Budgets.jsonl)의 상태를 확인해 주세요.")
+def f_budget_list(args):
+    repo = BudgetRepository()
+    print("\n[ 월별 예산 목록 ]")
+    print(f"{'원월':<10} | {'예산 금액':>12}")
+    print("-" * 28)
+
+    count = 0
+
+    for b in repo.find_all():
+        count +=1
+        print(f"{b.ym:<10} | {b.budget:>10,d}원")
+
+    print("-"*28)
+    if count == 0 :
+        print("설정된 예산이 없습니다.")
+    else:
+        print(f"총 {count}개의 월별 예산이 설정되어 있습니다.")
+
 # 일단은 매개변수가 있으면 출력하는 기능으로 구현함
 def parser():
 
@@ -337,7 +389,20 @@ def parser():
     p_cat_remove = cat_subparsers.add_parser("remove",help="카테고리 삭제")
     p_cat_remove.add_argument("--name",help="삭제할 카테고리명")
     p_cat_remove.set_defaults(func=f_category_remove)
+    
+    # budget
+    p_budget = subparsers.add_parser("budget",help="월별 예산 관리")
+    budget_subparsers = p_budget.add_subparsers(dest="subcommand",required=True)
 
+    # budget set
+    p_budget_set = budget_subparsers.add_parser("set",help="월별 예산 설정")
+    p_budget_set.add_argument("--month",help="설정할 연월 (YYYY-MM)")
+    p_budget_set.add_argument("--amount",type=int,help="예산 금액(원)")
+    p_budget_set.set_defaults(func=f_budget_set)
+
+    # budget list
+    P_budget_list = budget_subparsers.add_parser("list",help="설정된 에산 목록 조회")
+    P_budget_list.set_defaults(func=f_budget_list)
 
     # p_summary = subparsers.add_parser("summary",help="거래 추가")
     # p_budget = subparsers.add_parser("budget",help="거래 추가")

@@ -30,6 +30,9 @@ def measure_time(func):
         start = time.perf_counter()
         result = func(*args,**kwargs)
         elapsed = time.perf_counter() - start
+
+        print(f"⏱️ [{func.__name__}] 소요 시간: {elapsed:.8f} 초")
+
         return result
     return wrapper
 

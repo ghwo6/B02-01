@@ -101,6 +101,35 @@ def validate_date(date_text):
     except ValueError:
         print("날짜를 잘못 입력하셨습니다.")
 
+# 인풋을 입력받는다 : str
+# "-"로 split하여 앞이 0000의 숫자여야한다. 0 ~ 9999 -> 1900 ~ 2999 사이의 값으로 변경함
+# 뒤는 00의 숫자여야함 1 ~ 12
+# 조건에 맞지 않으면 다시 입력받는다.
+# 맞으면 보내준다.
+
+def input_ym(prompt):
+    while True:
+        raw_input = input(prompt).strip()
+        
+        y , m  = raw_input.replace("-"," ").split(" ")
+
+        if not(y.isdigit() and 1900 <= int(y) <= 2999):
+            print("연도 ",y,"는 1900 ~ 2999 사이의 값을 입력해주세요.")
+            continue
+
+        if not(m.isdigit() and 1<= int(m) <= 12):
+            print("월 ",m,"은 1 ~ 12 사이에 값을 입력바랍니다.")
+            continue
+        
+        result = f"{y}-{m:>02}"
+        
+        # 헷갈려서 출력함
+        # print(result)
+        
+        return result
+        
+
+
 
 if __name__ == "__main__":
 
@@ -126,4 +155,5 @@ if __name__ == "__main__":
     #         print(t1,t2)
     #     except KeyboardInterrupt:
     #         break
-    ...
+
+    input_ym("입력 부탁드려요. 연,월>")

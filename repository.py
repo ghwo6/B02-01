@@ -1,11 +1,14 @@
 import json,os
 from pathlib import Path
 from typing import List , Optional
+
 from dataclasses import asdict
-from models import Transaction
+
+from models import Transaction,Category,Budget
+
 from collections import deque
 from decorators import _atomic_rewrite
-from models import init_categories_file,Category,DEFAULT_CATEGORIES
+from models import init_categories_file,DEFAULT_CATEGORIES
 
 
 
@@ -246,3 +249,57 @@ class CategoryRepository:
             if tx.category == category_name:
                 return True
         return False
+
+class BudgetRepository:
+    def __init__(self,data_dir :str ="./data"):
+        self.dir_path = Path(data_dir)
+        self.file_path = self.dir_path / "budgets.jsonl"
+        self._init_storage()
+    
+    def _init_storage(self):
+        """ 폴더와 파일이 없으면 자동 생성 """
+        self.dir_path.mkdir(parents=True,exist_ok=True)
+        if not self.file_path.exists():
+            self.file_path.touch()
+    
+    def find_all(self):
+        """ 저장된 모든 월별 예산을 한 줄씩 스트리밍함 """
+        if not self.file_path.exists() or self.file_path.stat().st_size == 0:
+            return
+        
+        with open(self.file_path,"rt",encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    yield Budget(**json.loads(line))
+    
+    def get_budget(self,ym:str) -> Optional[Budget]:
+        """ 특정 월(YYYY-MM)의 예산 객체 조회 (없으면 NOne) 반환 """
+        for b in self.find_all():
+            if b.ym == ym:
+                return b
+        
+        return None
+    
+    @_atomic_rewrite("file_path")
+    def save(self,new_budget:Budget):
+        """
+        예산 저장 (Upsert : 기존에 해당 월이 있으면 갱신, 없으면 추가)
+        데코레이터가 안전하게 임시파일 쓰기 및 os.replace 교체를 수행함
+        """
+        found = False
+        # 내역을 검색해봄
+        for b in self.find_all():
+        # 입력한 Budget의 연월이 
+            if b.ym == new_budget.ym:
+
+                # 기존 월은 새로운 금액으로 교체
+
+                yield new_budget
+                found = True
+            else:
+                yield b
+
+        # 파일에 없던 새로운 월이면 맨 뒤에 추가함
+        if not found:
+            yield new_budget
