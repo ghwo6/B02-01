@@ -221,7 +221,7 @@ class TransactionRepository:
                     "category":tx.category,
                     "amount":tx.amount,
                     "memo":tx.memo or "",
-                    "tags": " ".join(tx.tags) if tx.tags else ""
+                    "tags": ",".join(tx.tags) if tx.tags else ""
                 }
                 writer.writerow(row)
 
@@ -249,7 +249,7 @@ class TransactionRepository:
                     raw_amount = row.get("amount","").strip()
                     memo = row.get("memo","").strip() or None
                     raw_tags = row.get("tags","").strip()
-                    tags = [t for t in raw_tags.split() if t]
+                    tags = [t.strip() for t in raw_tags.split(",") if t.strip()]
 
                     # 필수 값 및 유효성 검증
                     if not (date and tx_type and category and raw_amount):

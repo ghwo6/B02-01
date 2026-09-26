@@ -1,0 +1,7 @@
+date,type,category,amount,memo,tags
+2024-02-02,expense,쇼핑,45000,개발 서적 구매,book
+2024-01-28,expense,식비,9000,구내식당 점심,meal
+2024-01-25,income,급여,3500000,1월 정기 급여 입금,salary
+2024-01-20,expense,교통,2500,지하철 이동,transport
+2011-01-01,expense,식비,11111,#닭갈비,meal lunch
+2222-02-02,expense,식비,12121,3232 32323,3 23

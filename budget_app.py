@@ -59,7 +59,8 @@ def new_tx(repo:TransactionRepository):
 
 @handle_errors(hint="카테고리 명 중복 여부 및 입력 형식을 확인해 주세요.")
 def f_add(args):
-    repo = TransactionRepository(data_dir="./data")
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = TransactionRepository(data_dir=data_dir)
     tx = new_tx(repo)
     repo.save(tx)
 
@@ -68,8 +69,9 @@ def f_add(args):
 
 
 def f_list(args):
-
-    repo = TransactionRepository(data_dir="./data")
+    
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = TransactionRepository(data_dir=data_dir)
     tx_list = repo.find_all()
 
     if not tx_list:
@@ -403,7 +405,8 @@ def f_summary(args):
 
 @handle_errors(hint="내보낼 파일 경로 및 기간 옵션을 확인해 주세요.")
 def f_export(args):
-    tx_repo = TransactionRepository()
+    data_dir = getattr(args, "data_dir", "./data")
+    tx_repo = TransactionRepository(data_dir=data_dir)
 
     out_file = getattr(args,"out",None)
     if not out_file:
@@ -414,6 +417,10 @@ def f_export(args):
     date_from = getattr(args,"date_from",None)
     date_to = getattr(args,"date_to",None)
 
+    if not ym and not (date_from and date_to):
+        print("[오류] export는 '--month' 또는 '--from과 --to' 중 하나 이상의 기간 조건이 필수입니다.")
+        print("[힌트] 예: python -m budget_app export --out backup.csv --month 2026-09")
+        return
     if ym:
         tx_stream = (tx for tx in tx_repo.find_all() if tx.date.startswith(ym))
     else:
@@ -440,6 +447,9 @@ def f_import(args):
 def parser():
 
     parser = argparse.ArgumentParser(prog="budget_app",description="나만의 가계부 입니다.")
+    
+    # --data-dir 지원 (기본값: ./data)
+    parser.add_argument("--data-dir", default="./data", help="데이터 저장 폴더 경로 (기본값: ./data)")
 
     # 사용자가 입력한 명령어 이름을 'command'라는 변수에 담도록 설정 with GEMINI
     subparsers = parser.add_subparsers(dest="command", required=True)
