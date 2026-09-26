@@ -9,7 +9,7 @@ from models import Transaction,Category,Budget
 from collections import deque
 from decorators import _atomic_rewrite
 from models import init_categories_file,DEFAULT_CATEGORIES
-
+import csv
 
 
 class TransactionRepository:
@@ -171,6 +171,133 @@ class TransactionRepository:
                 f.write(line + "\n")
         # 원본 파일을 임시 파일로 즉시 안전하게 교체
         os.replace(temp_file,self.file_path)
+    
+    def get_monthly_summary(self,ym:str) ->dict:
+
+        # 특정 연월의 수입 합계
+        total_income = 0
+        # 특정 연월의 지출 합계
+        total_expense = 0
+        category_expenses = {}
+        tx_count = 0
+
+        # 스트리밍 순회
+        for tx in self.find_all():
+            if tx.date.startswith(ym):
+                tx_count +=1
+                if tx.type =="income":
+                    total_income += tx.amount
+                elif tx.type == "expense":
+                    total_expense += tx.amount
+                    category_expenses[tx.category] = category_expenses.get(tx.category,0) + tx.amount
+        
+        return {
+            "tx_count" : tx_count,
+            "total_income" : total_income,
+            "total_expense":total_expense,
+            "balance" : total_income - total_expense,
+            "category_expenses":category_expenses
+        }
+    def export_to_csv(self,filepath:str,tx_stream) ->int:
+        """
+        거래 내역을 (generator)를 받아 csv 파일로 스트리밍 쓰기
+        반환값 : 내보낸 총 거래 건수
+        """
+
+        out_path = Path(filepath)
+        out_path.parent.mkdir(parents=True,exist_ok=True)
+
+        fieldnames = ["date","type","category","amount","memo","tags"]
+        count = 0
+        with open(out_path,"w",encoding="utf-8",newline="") as f:
+            writer = csv.DictWriter(f,fieldnames=fieldnames)
+            writer.writeheader()
+
+            for tx in tx_stream:
+                count += 1
+                row = {
+                    "date" : tx.date,
+                    "type": tx.type,
+                    "category":tx.category,
+                    "amount":tx.amount,
+                    "memo":tx.memo or "",
+                    "tags": " ".join(tx.tags) if tx.tags else ""
+                }
+                writer.writerow(row)
+
+        return count
+    def import_from_csv(self,filepath:str,cat_repo) -> tuple[int,int]:
+        """
+        CSV 파일을 한 줄씩 읽어 유효성 검사 후 새 Transaction ID를 부여하여 저장
+        반환값 : (imported_count,skipped_count)
+        """
+        in_path = Path(filepath)
+        if not in_path.exists():
+            raise FileNotFoundError(f"파일을 찾을 수 없습니다: {filepath}")
+        
+        imported = 0
+        skipped = 0
+
+        with open(in_path,"r",encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                try:
+                    date = row.get("date","").strip()
+                    tx_type = row.get("type","").strip().lower()
+                    category = row.get("category","").strip()
+                    raw_amount = row.get("amount","").strip()
+                    memo = row.get("memo","").strip() or None
+                    raw_tags = row.get("tags","").strip()
+                    tags = [t for t in raw_tags.split() if t]
+
+                    # 필수 값 및 유효성 검증
+                    if not (date and tx_type and category and raw_amount):
+                        skipped += 1
+                        continue
+
+                    # 날짜 형식 검증 (YYYY-MM-DD)
+                    parts = date.split("-")
+                    if len(parts) != 3:
+                        skipped += 1
+                        continue
+
+                    # 타입 검증 (income / expense)
+                    if tx_type not in ("income","expense"):
+                        skipped +=1
+                        continue
+
+                    # 금액 검증 (양수 정수)
+                    amount = int(raw_amount)
+                    if amount <= 0:
+                        skipped +=1
+                        continue
+
+                    # 카테고리 존재 여부 검사 (카테고리 저장소에 없으면 스킵)
+                    if not cat_repo.exists(category):
+                        skipped +=1
+                        continue
+
+                    # 새 ID 생성 및 저장
+                    new_id = self.generate_new_id()
+                    tx = Transaction(
+                        id=new_id,
+                        type=tx_type,
+                        date=date,
+                        amount=amount,
+                        category=category,
+                        memo=memo,
+                        tags=tags
+                    )
+                    self.save(tx)
+                    imported += 1
+                
+                except (ValueError,KeyError):
+                    skipped += 1
+                    continue
+                
+        return imported,skipped
+
 
 class CategoryRepository:
     def __init__(self,data_dir:str="./data"):

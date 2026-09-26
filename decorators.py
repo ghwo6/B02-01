@@ -48,6 +48,8 @@ def _atomic_rewrite(target_file_attr:str = "file_path"):
 
             # 메서드가 반환한 제너레이터 실행
             item_generator = func(self,*args,**kwargs)
+            
+            # 제너레이터가 반환이 안됬으면
             if item_generator is None:
                 return False
             

@@ -335,6 +335,106 @@ def f_budget_list(args):
         print("설정된 예산이 없습니다.")
     else:
         print(f"총 {count}개의 월별 예산이 설정되어 있습니다.")
+        
+@handle_errors(hint="조회할 연월(YYYY-MM) 형식을 확인해 주세요.")
+def f_summary(args):
+    tx_repo = TransactionRepository()
+    budget_repo = BudgetRepository()
+
+    # 연월 인자 확인
+    ym = getattr(args,"ym",None) or getattr(args,"month",None)
+    if not ym:
+        ym = input_ym("조회할 연월 (YYYY-MM) > ")
+    
+    # TOP N 인자 확인 -> 기본 3개에서 None으로 변경 없으면 전부 다 출력하자
+    top_n = getattr(args,"top",None) or None
+    if top_n is not None and top_n <= 0:
+        top_n = None
+    
+    # 거래 내역 집계 데이터 가져오기
+    summary = tx_repo.get_monthly_summary(ym)
+    if summary["tx_count"] == 0:
+        print(f"\n[안내] {ym} 월의 거래 내역이 존재하지 않습니다.")
+        return
+    
+    # 상단 요약 출력
+    total_in = summary["total_income"]
+    total_ex = summary["total_expense"]
+    balance = summary["balance"]
+    balance_sign = "+" if balance > 0 else ""
+
+    print("\n","=" *50)
+    print(f"[ {ym} 월별 재정 요약 (총 {summary["tx_count"]}건) ]")
+    print("="*50)
+    print(f" 총 수입 : {total_in:>14,d} 원")
+    print(f" 총 지출 : {total_ex:>14,d} 원")
+    print(f" 순 잔액 : {balance_sign}{balance:>13,d} 원")
+    
+    # 지출 카테고리 TOP N 출력
+    cat_exp = summary["category_expenses"]
+    if cat_exp:
+        sorted_cats = sorted(cat_exp.items(),key=lambda x : x[1],reverse=True)[:top_n]
+        print(f" [ 지출 카테고리 ]")
+        for rank,(cat_name,amount) in enumerate(sorted_cats,start=1):
+            ratio = (amount/total_ex * 100) if total_ex > 0 else 0
+            print(f" {rank}위. {cat_name:<8} : {amount:>12,d}원 ({ratio:>5.1f}%)")
+    else:
+        print(" [ 지출 카테고리 ] 지출 내역이 없습니다.")
+    print("-" * 50)
+
+    budget_obj = budget_repo.get_budget(ym)
+    print(" [ 예산 대비 분석 ]")
+    if budget_obj:
+        budget_amt = budget_obj.budget
+        usage_rate = (total_ex / budget_amt * 100) if budget_amt > 0 else 0
+        diff = total_ex - budget_amt
+
+        print(f" 설정 예산 : {budget_amt:>14,d}원")
+        print(f" 총 지출 : {total_ex:>14,d}원 (사용률 : {usage_rate:.1f}%)")
+
+        if diff > 0:
+            print(f" [경고] 설정된 예산보다 {diff:,d}원을 초과 지출했습니다!")
+        else:
+            print(f" [정상] 예산 범위 내 지출 중입니다. (잔여 : {-diff:,d}원)")
+    else:
+        print(f" [안내] 해당 월의 예산이 설정되어 있지 않습니다.")
+    
+    print("="*50)
+
+@handle_errors(hint="내보낼 파일 경로 및 기간 옵션을 확인해 주세요.")
+def f_export(args):
+    tx_repo = TransactionRepository()
+
+    out_file = getattr(args,"out",None)
+    if not out_file:
+        print(f"[오류] 파일 경로를 입력해야 합니다.")
+        return
+    # 기간 필터링 : --month 가 있으면 우선 적용
+    ym = getattr(args,"month",None)
+    date_from = getattr(args,"date_from",None)
+    date_to = getattr(args,"date_to",None)
+
+    if ym:
+        tx_stream = (tx for tx in tx_repo.find_all() if tx.date.startswith(ym))
+    else:
+        tx_stream = tx_repo.search(date_from=date_from,date_to=date_to)
+    
+    count = tx_repo.export_to_csv(out_file,tx_stream)
+    print(f"\n[내보내기 완료] 총 {count}건의 거래 내역이 '{out_file}'에 안전하게 저장되었습니다.")
+
+@handle_errors(hint="가져올 CSV 파일 경로 및 형식을 확인해 주세요.")
+def f_import(args):
+    tx_repo = TransactionRepository()
+    cat_repo = CategoryRepository()
+
+    in_file = getattr(args,"from_file",None) or input("가져올 CSV 파일 경로 > ").strip()
+    if not in_file:
+        print("[오류] 파일 경로를 입력해야 합니다.")
+        return
+    
+    imported , skipped = tx_repo.import_from_csv(in_file,cat_repo)
+    print(f"\n[가져오기 완료] 성공 : {imported}건, 건너뜀: {skipped}건 (imported={imported}, skipped={skipped})")
+
 
 # 일단은 매개변수가 있으면 출력하는 기능으로 구현함
 def parser():
@@ -396,19 +496,33 @@ def parser():
 
     # budget set
     p_budget_set = budget_subparsers.add_parser("set",help="월별 예산 설정")
-    p_budget_set.add_argument("--month",help="설정할 연월 (YYYY-MM)")
+    p_budget_set.add_argument("--month","--ym",dest="month",help="설정할 연월 (YYYY-MM)")
     p_budget_set.add_argument("--amount",type=int,help="예산 금액(원)")
     p_budget_set.set_defaults(func=f_budget_set)
 
     # budget list
     P_budget_list = budget_subparsers.add_parser("list",help="설정된 에산 목록 조회")
     P_budget_list.set_defaults(func=f_budget_list)
+    
+    # summary
+    p_summary = subparsers.add_parser("summary",help="월별 통계 요약 및 예산 분석")
+    p_summary.add_argument("--month","--ym",dest="ym",help="조회할 연월 (YYYY-MM)")
+    p_summary.add_argument("--top",type=int,help="상위 지출 카테고리 개수")
+    p_summary.set_defaults(func=f_summary)
 
-    # p_summary = subparsers.add_parser("summary",help="거래 추가")
-    # p_budget = subparsers.add_parser("budget",help="거래 추가")
-    # p_category = subparsers.add_parser("category",help="거래 추가")
-    # p_import = subparsers.add_parser("import",help="거래 추가")
-    # p_export = subparsers.add_parser("export",help="거래 추가")
+    # export
+    p_export = subparsers.add_parser("export",help="거래 내역을 CSV 파일로 내보내기")
+    p_export.add_argument("--out",required=True,help="저장할 CSV 파일 경로")
+    p_export.add_argument("--month",help="특정 연월 필터 (YYYY-MM)")
+    p_export.add_argument("--from",dest="date_from",help="시작 날짜 (YYYY-MM-DD)")
+    p_export.add_argument("--to",dest="date_to",help="종료 날짜 (YYYY-MM-DD)")
+    p_export.set_defaults(func=f_export)
+
+    # import (from는 파이썬 예약어라서 dest = "from_file"로 변경)
+    p_import = subparsers.add_parser("import",help="CSV 파일에서 거래 내역 가져오기")
+    p_import.add_argument("--from",dest="from_file",required=False,help="가져올 CSV 파일 경로")
+    p_import.set_defaults(func=f_import)
+
     args = parser.parse_args()
     args.func(args)
 
