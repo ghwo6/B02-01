@@ -9,20 +9,6 @@ from decorators import handle_errors
 PROGRAM_END_POINT = "./main.py"
 USAGE_LIST = ["add","list","update","delete","search","summary","budget","category","import","export"]
 
-def defalut_use_print():
-    print(f"python {PROGRAM_END_POINT} [usage]")
-    print("[usage]는 다음과 같습니다.")
-    print_usage()
-    return
-
-def print_usage():
-    print()
-    print(*USAGE_LIST[0:len(USAGE_LIST)//2])
-    print(*USAGE_LIST[len(USAGE_LIST)//2:])
-    print()
-
-    return
-
 def new_tx(repo:TransactionRepository):
     # 날짜 입력 받음
     date = date_input()
@@ -263,7 +249,10 @@ def f_category_add(args):
 
     data_dir = getattr(args, "data_dir", "./data")
     cat_repo = CategoryRepository(data_dir=data_dir)
-    name = input("카테고리명: >").strip()
+
+    name = getattr(args,"name",None)
+    if not name:
+        name = input("카테고리명: >").strip()
     
     if not name:
         print("[오류] 카테고리명을 입력해야 합니다.")
@@ -273,7 +262,11 @@ def f_category_add(args):
         print(f"[오류] 이미 존재하는 카테고리입니다. {name}")
         return
     
-    c_type = money_type_verify()
+    c_type = getattr(args,"type",None)
+
+    if not c_type:
+        c_type = money_type_verify()
+
     cat = Category(type=c_type,name=name)
     
     if cat_repo.add(cat):
