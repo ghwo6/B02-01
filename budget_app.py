@@ -266,8 +266,11 @@ def f_category_remove(args):
     cat_repo = CategoryRepository()
     tx_repo = TransactionRepository()
 
-    name = input("삭제할 카테고리명: ").strip()
+    name = getattr(args,"name",None)
+    if not name:
+        name = input("삭제할 카테고리명: ").strip()
 
+    
     if not name:
         print("[오류] 카테고리명을 입력해야 합니다.")
         return
