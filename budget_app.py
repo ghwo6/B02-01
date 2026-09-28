@@ -549,3 +549,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("CTRL + C로 프로그램을 종료합니다.")
         sys.exit(0)
+    except IOError:
+        print("CTRL + D 로 프로그램을 종료합니다.")
+        sys.exit(0)

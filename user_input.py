@@ -78,7 +78,7 @@ def category_input():
             print()
             print("같은 이름의 카테고리가 검색되지 않습니다.")
             print("필요시 category add 기능을 사용해 주세요.")
-            print("ctrl + C 로 탈출 가능합니다.")
+            print("ctrl + C 또는 ctrl + D로 탈출 가능합니다.")
             print()
             
 def amount_input(prompt:str)->int:
