@@ -341,6 +341,15 @@ class CategoryRepository:
         with open(self.file_path,"a",encoding="utf-8") as f:
             f.write(json.dumps(asdict(category),ensure_ascii=False) + "\n")
         return True
+
+    def find_by_name(self,name:str)->dict:
+        if not name:
+            return
+        for cat in self.find_all():
+            if cat.name == name:
+                return cat
+
+        return None
     
     # 삭제
     @_atomic_rewrite("file_path")
@@ -430,3 +439,8 @@ class BudgetRepository:
         # 파일에 없던 새로운 월이면 맨 뒤에 추가함
         if not found:
             yield new_budget
+
+if __name__ == "__main__":
+    cat_repo = CategoryRepository(data_dir="./data")
+
+    print(cat_repo.find_by_name("식비").name)

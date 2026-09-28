@@ -59,6 +59,7 @@ def new_tx(repo:TransactionRepository):
 
 @handle_errors(hint="카테고리 명 중복 여부 및 입력 형식을 확인해 주세요.")
 def f_add(args):
+
     data_dir = getattr(args, "data_dir", "./data")
     repo = TransactionRepository(data_dir=data_dir)
     tx = new_tx(repo)
@@ -113,7 +114,9 @@ def f_list(args):
         print(f"총 {count}건의 거래 내역이 출력되었습니다.")
 
 def f_search(args):
-    repo = TransactionRepository(data_dir="./data")
+    
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = TransactionRepository(data_dir=data_dir)
     
     #repo.search 제너레이터 호출
     tx_stream = repo.search(
@@ -145,7 +148,9 @@ def f_search(args):
         print(f"총 {count}건의 거래 내역이 검색되었습니다.")
 
 def f_delete(args):
-    repo = TransactionRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = TransactionRepository(data_dir=data_dir)
     tx_id = args.id
 
     # 삭제 실행
@@ -157,7 +162,10 @@ def f_delete(args):
     else:
         print(f"[오류] ID가 '{tx_id}'인 거래 데이터를 찾을 수 없습니다. (없는 데이터).")
 def f_update(args):
-    repo = TransactionRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = TransactionRepository(data_dir=data_dir)
+    cat_repo = CategoryRepository(data_dir=data_dir)
     tx_id = args.id
     
     # 기존 데이터 조회
@@ -198,7 +206,15 @@ def f_update(args):
     
     if "2" in selected_fields:
         print("\n[새 타입 입력]")
-        tx.type = money_type_verify()
+        sample = money_type_verify()
+        verify_type = cat_repo.find_by_name(tx.category).type
+
+
+        if sample != verify_type:
+            print(f"\n[알림] '{tx.category}'은(는) '{verify_type}' 카테고리입니다.")
+            print(f"{sample}으로 입력하신게 맞는지 확인해주세요.")
+            print(f"타입을 '{sample}'에서 '{verify_type}'(으)로 자동 변경합니다.")
+            tx.type = verify_type
     
     if "3" in selected_fields:
         print("\n[새 카테고리 입력]")
@@ -226,7 +242,9 @@ def f_update(args):
 
 @handle_errors(hint="카테고리 저장소 파일 상태를 확인해 주세요.")
 def f_category_list(args):
-    cat_repo = CategoryRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    cat_repo = CategoryRepository(data_dir=data_dir)
     print("\n[ 등록된 카테고리 목록 ]")
     print(f"{'구분':<8} | 카테고리명")
     print("-"*30)
@@ -242,7 +260,9 @@ def f_category_list(args):
     
 @handle_errors(hint="이미 등록된 카테고리인지 확인하고, 타입은 income 또는 expense로 입력해 주세요.")
 def f_category_add(args):
-    cat_repo = CategoryRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    cat_repo = CategoryRepository(data_dir=data_dir)
     name = input("카테고리명: >").strip()
     
     if not name:
@@ -263,8 +283,10 @@ def f_category_add(args):
 
 @handle_errors(hint="삭제하려는 카테고리명을 정확히 입력해 주세요.")
 def f_category_remove(args):
-    cat_repo = CategoryRepository()
-    tx_repo = TransactionRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    cat_repo = CategoryRepository(data_dir=data_dir)
+    tx_repo = TransactionRepository(data_dir=data_dir)
 
     name = getattr(args,"name",None)
     if not name:
@@ -292,7 +314,9 @@ def f_category_remove(args):
 
 @handle_errors(hint="월 형식(YYYY-MM) 및 금액(양수)을 올바르게 입력해 주세요.")
 def f_budget_set(args):
-    repo = BudgetRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = BudgetRepository(data_dir=data_dir)
     
     # 월 파서에 없으면 대화형으로 입력받자 (편의성 높여줌)
     ym = getattr(args,"month",None)
@@ -324,7 +348,8 @@ def f_budget_set(args):
 
 @handle_errors(hint="예산 저장소 파일 (Budgets.jsonl)의 상태를 확인해 주세요.")
 def f_budget_list(args):
-    repo = BudgetRepository()
+    data_dir = getattr(args, "data_dir", "./data")
+    repo = BudgetRepository(data_dir=data_dir)
     print("\n[ 월별 예산 목록 ]")
     print(f"{'원월':<10} | {'예산 금액':>12}")
     print("-" * 28)
@@ -343,8 +368,9 @@ def f_budget_list(args):
         
 @handle_errors(hint="조회할 연월(YYYY-MM) 형식을 확인해 주세요.")
 def f_summary(args):
-    tx_repo = TransactionRepository()
-    budget_repo = BudgetRepository()
+    data_dir = getattr(args, "data_dir", "./data")
+    tx_repo = TransactionRepository(data_dir=data_dir)
+    budget_repo = BudgetRepository(data_dir=data_dir)
 
     # 연월 인자 확인
     ym = getattr(args,"ym",None) or getattr(args,"month",None)
@@ -434,8 +460,10 @@ def f_export(args):
 
 @handle_errors(hint="가져올 CSV 파일 경로 및 형식을 확인해 주세요.")
 def f_import(args):
-    tx_repo = TransactionRepository()
-    cat_repo = CategoryRepository()
+
+    data_dir = getattr(args, "data_dir", "./data")
+    tx_repo = TransactionRepository(data_dir=data_dir)
+    cat_repo = CategoryRepository(data_dir=data_dir)
 
     in_file = getattr(args,"from_file",None) or input("가져올 CSV 파일 경로 > ").strip()
     if not in_file:
