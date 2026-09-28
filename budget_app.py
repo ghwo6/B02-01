@@ -240,7 +240,7 @@ def f_category_list(args):
     print("-"*30)
     print(f"총 {count}개의 카테고리가 등록되어 있습니다.")
     
-@handle_errors()
+@handle_errors(hint="이미 등록된 카테고리인지 확인하고, 타입은 income 또는 expense로 입력해 주세요.")
 def f_category_add(args):
     cat_repo = CategoryRepository()
     name = input("카테고리명: >").strip()
@@ -548,7 +548,4 @@ if __name__ == "__main__":
         parser()
     except KeyboardInterrupt:
         print("CTRL + C로 프로그램을 종료합니다.")
-        sys.exit(0)
-    except IOError:
-        print("CTRL + D 로 프로그램을 종료합니다.")
         sys.exit(0)
